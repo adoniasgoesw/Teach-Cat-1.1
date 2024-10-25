@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teach Cat</title>
+
+    <style>
+        body {
+    display: flex;
+    align-items: center;
+    height: 100vh;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    font-size: 2rem;
+    padding: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.Ans {
+    display: flex;
+    gap: 10px;
+}
+
+.correct {
+    background-color: green;
+    color: white;
+}
+
+.incorrect {
+    background-color: red;
+    color: white;
+}
+
+#nextBtn {
+    display: none;
+    font-size: 1.5rem;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+.vidas {
+    position: absolute;
+    top: 200px;
+    right: 20px; /* Ajustado para a versão mobile */
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.vida {
+    font-size: 2rem;
+    color: red;
+}
+
+.game-over-message {
+    font-size: 1.5rem;
+    color: red;
+    text-align: center;
+    display: none;
+}
+
+.timer {
+    font-size: 1.5rem;
+    color: blue;
+    display: none;
+}
+
+/* Barra de progresso */
+#progressContainer {
+    width: 100%;
+    max-width: 500px;
+    background-color: #ddd;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    height: 20px;
+    position: absolute;
+    top: 150px;
+    left: 20px; /* Ajustado para a versão mobile */
+}
+
+#progressBar {
+    width: 0%;
+    height: 100%;
+    background-color: purple;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+/* Media Query para telas menores que 540px */
+@media (max-width: 540px) {
+    body {
+        padding: 10px; /* Adiciona algum padding para evitar que o conteúdo grude nas bordas */
+    }
+
+    button {
+        font-size: 1.5rem; /* Tamanho de fonte menor para botões */
+        padding: 8px; /* Reduz padding para botões */
+    }
+
+    .vidas {
+        top: 150px; /* Ajusta a posição das vidas */
+        right: 10px; /* Ajusta a posição das vidas */
+    }
+
+    .vida {
+        font-size: 1.5rem; /* Tamanho de fonte menor para a vida */
+    }
+
+    .game-over-message {
+        font-size: 1.2rem; /* Tamanho de fonte menor para a mensagem de game over */
+    }
+
+    .timer {
+        font-size: 1.2rem; /* Tamanho de fonte menor para o cronômetro */
+    }
+
+    #progressContainer {
+        top: 100px; /* Ajusta a posição da barra de progresso */
+        left: 10px; /* Ajusta a posição da barra de progresso */
+    }
+}
+
+    </style>
+</head>
+<body>
+    <Section>
+        <div class="vidas" id="lives">
+            <span class="vida">❤️5</span>
+        </div>
+
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
+
+        <div class="game-over-message" id="gameOverMessage">
+            Suas vidas acabaram! Espere <span class="timer" id="timer">05:00</span> para recarregar.
+        </div>
+
+        <div class="content">
+            <div class="ask">
+                <h1 class="word">Palavra</h1>
+            </div>
+
+            <div class="Ans" id="answers">
+                <button class="optionA">a</button>
+                <button class="optionB">b</button>
+                <button class="optionC">c</button>
+                <button class="optionD">d</button>
+            </div>
+            <button id="nextBtn">PRÓXIMA</button>
+        </div>
+    </Section>
+
+    <script>
+        // Novo banco de dados de palavras para cada nível
+        const palavrasDB = {
+            pronomes: [
+                { palavra: "eu", traducao: "I" },
+                { palavra: "tu", traducao: "you" },
+                { palavra: "ele", traducao: "he" },
+                { palavra: "ela", traducao: "she" },
+                { palavra: "nós", traducao: "we" },
+                { palavra: "vós", traducao: "you" },
+                { palavra: "eles", traducao: "they" },
+                { palavra: "elas", traducao: "they" },
+                { palavra: "meu", traducao: "my" },
+                { palavra: "teu", traducao: "your" }
+            ],
+            verbos: [
+                { palavra: "correr", traducao: "run" },
+                { palavra: "comer", traducao: "eat" },
+                { palavra: "beber", traducao: "drink" },
+                { palavra: "falar", traducao: "speak" },
+                { palavra: "ver", traducao: "see" },
+                { palavra: "ouvir", traducao: "hear" },
+                { palavra: "sorrir", traducao: "smile" },
+                { palavra: "trabalhar", traducao: "work" },
+                { palavra: "estudar", traducao: "study" },
+                { palavra: "pensar", traducao: "think" }
+            ],
+            alimentos: [
+                { palavra: "maçã", traducao: "apple" },
+                { palavra: "banana", traducao: "banana" },
+                { palavra: "laranja", traducao: "orange" },
+                { palavra: "uva", traducao: "grape" },
+                { palavra: "manga", traducao: "mango" },
+                { palavra: "pão", traducao: "bread" },
+                { palavra: "leite", traducao: "milk" },
+                { palavra: "queijo", traducao: "cheese" },
+                { palavra: "carne", traducao: "meat" },
+                { palavra: "arroz", traducao: "rice" }
+            ]
+        };
+
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let xp = 0;
+        let vidas = 5;
+        let maxQuestions = 5;
+
+        // Função para obter uma palavra aleatória de uma categoria
+        function getRandomWord() {
+            const selectedCategory = localStorage.getItem('selectedCategory');
+            const words = palavrasDB[selectedCategory] || []; // Obtém palavras da categoria selecionada
+            const randomIndex = Math.floor(Math.random() * words.length);
+            return words[randomIndex];
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        const nextBtn = document.getElementById('nextBtn');
+
+        // Função para sintetizar e pronunciar o texto
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
+        }
+
+        function updateGame(categoria) {
+            if (currentQuestion >= maxQuestions) {
+                endQuiz();
+                return;
+            }
+
+            const randomWord = getRandomWord(categoria);
+            document.querySelector('.word').innerText = randomWord.palavra;
+
+            const correctAnswer = randomWord.traducao;
+            const wrongAnswers = Object.values(palavrasDB)
+                .flat()
+                .filter(p => p.traducao !== correctAnswer)
+                .map(p => p.traducao);
+
+            shuffleArray(wrongAnswers);
+            const options = [correctAnswer, ...wrongAnswers.slice(0, 3)];
+            shuffleArray(options);
+
+            const buttons = Array.from(document.querySelectorAll('.Ans button'));
+            buttons.forEach((button, index) => {
+                button.innerText = options[index];
+                button.classList.remove('correct', 'incorrect');
+                button.disabled = false;
+                nextBtn.style.display = 'none';
+
+                button.onclick = () => {
+                    speakText(button.innerText);
+
+                    if (button.innerText === correctAnswer) {
+                        button.classList.add('correct');
+                        correctAnswers++;
+                        xp += 3; // Ganha 3 XP por resposta correta
+                        updateProgress();
+                    } else {
+                        button.classList.add('incorrect');
+                        vidas--;
+                        updateLives();
+                    }
+
+                    buttons.forEach(btn => btn.disabled = true);
+                    nextBtn.style.display = 'block';
+                };
+            });
+        }
+
+        nextBtn.addEventListener('click', () => {
+            const categoria = 'pronomes'; // Defina a categoria desejada
+            currentQuestion++;
+            updateGame(categoria);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const categoria = 'pronomes'; // Defina a categoria inicial
+            updateGame(categoria);
+        });
+
+        function updateLives() {
+    const livesContainer = document.getElementById('lives');
+    livesContainer.innerHTML = '';
+
+    const heart = document.createElement('span');
+    heart.classList.add('vida');
+    heart.innerText = `❤️${vidas}`;
+    livesContainer.appendChild(heart);
+
+    // Atualiza o número de vidas no localStorage
+    localStorage.setItem('vidas', vidas); // Adicione esta linha
+
+    if (vidas === 0) {
+        document.getElementById('gameOverMessage').style.display = 'block';
+        startTimer();
+        disableButtons();
+    }
+}
+
+
+        function disableButtons() {
+            const buttons = Array.from(document.querySelectorAll('.Ans button'));
+            buttons.forEach(button => button.disabled = true);
+        }
+
+        function startTimer() {
+            let timeLeft = 30;
+            const timerElement = document.getElementById('timer');
+            timerElement.style.display = 'inline';
+
+            const timer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeLeft > 0) {
+                    timeLeft--;
+                } else {
+                    clearInterval(timer);
+                    vidas = 1;
+                    updateLives();
+                    document.getElementById('gameOverMessage').style.display = 'none';
+                    enableButtons();
+                }
+            }, 1000);
+        }
+
+        
+
+
+
+        function enableButtons() {
+            const buttons = Array.from(document.querySelectorAll('.Ans button'));
+            buttons.forEach(button => button.disabled = false);
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion / maxQuestions) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Função para salvar o XP ganho no localStorage
+        function saveXP() {
+            let totalXP = localStorage.getItem('totalXP') ? parseInt(localStorage.getItem('totalXP')) : 0;
+            totalXP += xp;
+            localStorage.setItem('totalXP', totalXP); // Salva o XP total
+        }
+
+        function endQuiz() {
+            alert(`Parabéns! Você completou o quiz e ganhou ${xp} XP!`);
+            saveXP(); // Salva o XP antes de redirecionar
+            window.location.href = 'map.html'; // Redireciona para a página do mapa
+        }
+    </script>
+</body>
+</html>

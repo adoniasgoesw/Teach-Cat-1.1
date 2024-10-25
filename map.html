@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.4.0/remixicon.css" integrity="sha512-hH7VMMVfPgfkpYx2GazOEG6RrYM+y8cS7FzccwBTWQeyhPv01XYk0MVcuhh4EAimOELWvqKjhNwes/UsYoyN6w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Teach Cat - Progressão de Níveis</title>
+
+    <style>
+       body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+    position: relative;
+}
+
+/* Header and Footer Styling */
+header,
+footer {
+    position: fixed;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    font-size: 1.2rem;
+}
+
+header {
+    top: 0;
+    z-index: 100;
+}
+
+footer {
+    bottom: 0;
+    z-index: 99;
+}
+
+#gameMap {
+    width: 90%; /* Ajusta a largura para 90% para telas menores */
+    max-width: 500px; /* Limita a largura máxima */
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%); /* Centraliza verticalmente */
+    z-index: 0;
+}
+
+.nivel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.title h1 {
+    margin: 0;
+    padding: 10px;
+    font-size: 1.5rem; /* Ajuste para o título */
+}
+
+.leveis {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%; /* Botões ocupam toda a largura disponível */
+}
+
+/* Cores dos botões */
+.sakura {
+    background-color: #ff6f61; /* Coral */
+}
+
+.florescente {
+    background-color: #6b5b95; /* Roxo */
+}
+
+.esmeralda {
+    background-color: #88b04b; /* Verde */
+}
+
+button:hover {
+    filter: brightness(0.9);
+}
+
+/* Media Query para telas menores que 540px */
+@media (max-width: 540px) {
+    body {
+        padding: 10px; /* Adiciona padding ao corpo */
+    }
+
+    header,
+    footer {
+        font-size: 1rem; /* Reduz o tamanho da fonte no cabeçalho e rodapé */
+        padding: 8px; /* Reduz padding no cabeçalho e rodapé */
+    }
+
+    #gameMap {
+        top: 70%;
+        width: 100%; /* Faz o mapa ocupar 100% da largura */
+        max-width: none; /* Remove a largura máxima */
+    }
+
+    .title h1 {
+        font-size: 1.2rem; /* Ajuste o tamanho do título para telas menores */
+    }
+
+    button {
+        padding: 15px; /* Aumenta o padding dos botões para melhor toque */
+        font-size: 1.2rem; /* Aumenta o tamanho da fonte dos botões */
+    }
+}
+
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div><i class="ri-flag-fill"></i></i><span>ENG</span></div>
+        <div>🔥  <span id="studyDays">3</span></div>
+        <div>⭐  <span id="totalXP">0</span></div> <!-- Mostra o XP acumulado -->
+        <div id="livesContainer"><span id="lives">5</span> <span class="timer" id="lifeTimer"></span></div>
+        <div> <i class="ri-user-line"></i> <span></span></div>
+    </header>
+
+    <div id="gameMap">
+
+        <div class="nivel">
+            <div class="title">
+                <h1>Sakura</h1>
+            </div>
+            <div class="leveis">
+                <button class="sakura" onclick="openLevel('quiz.html', 'pronomes')">Pronomes</button>
+                <button class="sakura" onclick="openLevel('quiz.html', 'verbos')">Verbos</button>
+                <button class="sakura" onclick="openLevel('quiz.html', 'alimentos')">Alimentos</button>
+                <button class="sakura">Portal</button>
+            </div>
+        </div>
+
+        <div class="nivel">
+            <div class="title">
+                <h1>Florescente</h1>
+            </div>
+            <div class="leveis">
+                <button class="florescente">Vestuário</button>
+                <button class="florescente">Cor</button>
+                <button class="florescente">Local</button>
+                <button class="florescente">Portal</button>
+            </div>
+        </div>
+
+        <div class="nivel">
+            <div class="title">
+                <h1>Esmeralda</h1>
+            </div>
+            <div class="leveis">
+                <button class="esmeralda">Conjunções</button>
+                <button class="esmeralda">Adjetivos</button>
+                <button class="esmeralda">Advérbios</button>
+                <button class="esmeralda">Portal</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>🗺️ </div>
+        <div>⚔️ </div>
+        <div>🐱</div>
+        <div>🛡️</div>
+        <div>🔔</div>
+    </footer>
+
+    <script>
+        let lives = 5;
+        let totalXP = 0;
+
+        function openLevel(url, category) {
+            localStorage.setItem('selectedCategory', category); // Armazena a categoria no localStorage
+            window.location.href = url; // Redireciona para quiz.html
+        }
+
+        function playGame() {
+            const xpGained = 10;
+            if (lives > 0) {
+                totalXP += xpGained;
+                document.getElementById('totalXP').innerText = totalXP;
+                alert(`Você ganhou ${xpGained} XP!`);
+            } else {
+                alert("Sem vidas! Aguarde a recarga.");
+            }
+        }
+
+        function loseLife() {
+            if (lives > 0) {
+                lives--;
+                document.getElementById('lives').innerText = lives;
+                startLifeRecharge();
+            }
+        }
+
+        function startLifeRecharge() {
+            const lifeRechargeTimes = [5, 12, 18, 25, 32]; // tempos em minutos para cada vida a ser recarregada
+            let rechargeTime = lifeRechargeTimes[5 - lives] * 60; // tempo em segundos
+
+            const lifeTimer = document.getElementById('lifeTimer');
+            lifeTimer.style.display = 'inline'; // Mostra o cronômetro
+            lifeTimer.innerText = `Recuperando vida...`;
+
+            const timerInterval = setInterval(() => {
+                if (rechargeTime > 0) {
+                    const minutes = Math.floor(rechargeTime / 60).toString().padStart(2, '0');
+                    const seconds = (rechargeTime % 60).toString().padStart(2, '0');
+                    lifeTimer.innerText = `${minutes}:${seconds}`;
+                    rechargeTime--;
+                } else {
+                    clearInterval(timerInterval);
+                    lives++;
+                    document.getElementById('lives').innerText = lives;
+                    lifeTimer.innerText = '';
+                    localStorage.setItem('vidas', lives); // Atualiza o localStorage
+
+                    // Adiciona a nova vida ao quiz.html
+                    const indexLives = localStorage.getItem('vidas') ? parseInt(localStorage.getItem('vidas')) : 5; // Recupera vidas do quiz.html
+                    localStorage.setItem('vidas', indexLives + 1); // Aumenta uma vida em quiz.html
+
+                    if (lives < 5) startLifeRecharge(); // Se ainda não tiver 5 vidas, começa o próximo recarregamento
+                }
+            }, 1000);
+        }
+
+        document.getElementById('livesContainer').addEventListener('click', () => {
+            if (lives < 5) {
+                startLifeRecharge(); // Inicia o cronômetro se as vidas forem menores que 5
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const totalXP = localStorage.getItem('totalXP') || 0;
+            document.getElementById('totalXP').innerText = totalXP;
+
+            const vidas = localStorage.getItem('vidas') ? parseInt(localStorage.getItem('vidas')) : 5; // Altere o valor padrão conforme necessário
+            const livesContainer = document.getElementById('lives');
+            livesContainer.innerHTML = `❤️${vidas}`; // Atualize o DOM com o número de vidas
+        });
+    </script>
+</body>
+
+</html>
